@@ -69,7 +69,7 @@ else current_max=0;
 ada->max_ma=current_max;
 if (ada->name == 0) return 0;
 if (strlen(ada->name) != 0) 
-   pr_info("adapter[%s]: psy=%08x scope=%d, online=%d, current_max=%dmA, voltage_now=%dmV\n",ada->name,ada->psy,scope,online,current_max,voltage_now);
+   pr_info("adapter[%s]: scope=%d, online=%d, current_max=%dmA, voltage_now=%dmV\n",ada->name,scope,online,current_max,voltage_now);
 return 0;
 }
 
