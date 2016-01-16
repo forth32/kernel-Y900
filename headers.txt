@@ -1,0 +1,14 @@
+Заголовки для функций, поставляемых в виде только объектных модулей
+
+int jrd_usb_switch(e_jrd_switch_mode mode);
+static void jrd_usb_start_work(struct work_struct *work);
+static int jrd_usb_enable(struct usb_composite_dev *cdev, bool enable);
+static int jrd_usb_config(struct usb_composite_dev *cdev, __le16 pid);
+//folder drivers/usb/gadget
+
+int32_t jrd_qpnp_vadc_read(enum qpnp_vadc_channels channel,struct qpnp_vadc_result *result);
+static int jrd_ms_mount(void);
+static void jrd_ms_do_switch_cb(struct work_struct *work);
+static int jrd_ms_do_switch(struct fsg_common *common, struct fsg_buffhd *bh);
+uint8_t jrd_ms_do_scsi_command(struct fsg_common *common, struct fsg_buffhd *bh);
+//folder drivers/hwmon/

@@ -1,0 +1,11 @@
+#!/bin/sh
+dtbtool arch/arm/boot/dts/ -o masterDTB -p scripts/dtc/ -s 4096 -2 -v
+mkbootimg --kernel arch/arm/boot/zImage \
+          --ramdisk /dev/null \
+          --ramdisk_offset 0x00008000 \
+          --cmdline 'noinitrd rw rootfstype=yaffs2 console=ttyHSL0,115200,n8 androidboot.hardware=qcom ehci-hcd.park=3 msm_rtb.filter=0x37' \
+          --base 0x07100000 \
+          --tags_offset 0x00B00000 \
+          --pagesize 4096 \
+          --dt masterDTB \
+          --output boot.img

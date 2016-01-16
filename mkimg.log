@@ -1,0 +1,4 @@
+DTB combiner:
+  Input directory: 'arch/arm/boot/dts/'
+  Output file: 'masterDTB'
+=> Found 0 unique DTB(s)
