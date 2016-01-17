@@ -35,7 +35,7 @@ static int registered_count=0;
 //********************************************
 int charger_core_get_adapter(struct adapter *ada) {
 
-int online,rc,current_max,scope,voltage_now;  
+int online,rc,current_max,scope;  
 union power_supply_propval prop;
 
 
@@ -55,10 +55,6 @@ if (ada->psy != 0) {
   if (rc != 0) current_max=0;
   else    current_max=prop.intval/1000;
 
-  rc=ada->psy->get_property(ada->psy,POWER_SUPPLY_PROP_VOLTAGE_NOW,&prop);
-  if (rc != 0) voltage_now=0;
-  else voltage_now=prop.intval/1000;
-  
   rc=ada->psy->get_property(ada->psy,POWER_SUPPLY_PROP_SCOPE,&prop);
   if (rc == 0) scope=prop.intval;
   else scope=0;
@@ -69,7 +65,7 @@ else current_max=0;
 ada->max_ma=current_max;
 if (ada->name == 0) return 0;
 if (strlen(ada->name) != 0) 
-   pr_info("adapter[%s]: scope=%d, online=%d, current_max=%dmA, voltage_now=%dmV\n",ada->name,scope,online,current_max,voltage_now);
+   pr_info("adapter[%s]: scope=%d, online=%d, current_max=%dmA\n",ada->name,scope,online,current_max);
 return 0;
 }
 
