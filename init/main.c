@@ -112,7 +112,6 @@ bool early_boot_irqs_disabled __read_mostly;
 
 enum system_states system_state __read_mostly;
 EXPORT_SYMBOL(system_state);
-
 /*
  * Boot command-line arguments
  */
@@ -130,6 +129,15 @@ char __initdata boot_command_line[COMMAND_LINE_SIZE];
 char *saved_command_line;
 /* Command line for parameter parsing */
 static char *static_command_line;
+
+static unsigned int jrd_chgoff_flag=0;
+EXPORT_SYMBOL(jrd_chgoff_flag);
+
+unsigned int get_jrd_chgoff_flag() {
+  return jrd_chgoff_flag;
+}
+EXPORT_SYMBOL(get_jrd_chgoff_flag);
+
 
 static char *execute_command;
 static char *ramdisk_execute_command;
@@ -304,6 +312,10 @@ static int __init init_setup(char *str)
 	 * the shell think it should execute a script with such name.
 	 * So we ignore all arguments entered _before_ init=... [MJ]
 	 */
+	if (str != 0){
+	  jrd_chgoff_flag=1;
+	  pr_err("jrd_chgoff_flag set to 1\n");
+	}  
 	for (i = 1; i < MAX_INIT_ARGS; i++)
 		argv_init[i] = NULL;
 	return 1;

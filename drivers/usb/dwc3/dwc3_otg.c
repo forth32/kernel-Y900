@@ -30,6 +30,9 @@ static int max_chgr_retry_count = MAX_INVALID_CHRGR_RETRY;
 module_param(max_chgr_retry_count, int, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(max_chgr_retry_count, "Max invalid charger retry count");
 
+//extern unsigned int jrd_chgoff_flag;
+unsigned int get_jrd_chgoff_flag();
+
 static void dwc3_otg_reset(struct dwc3_otg *dotg);
 static int dwc3_otg_set_host(struct usb_otg *otg, struct usb_bus *host);
 static void dwc3_otg_notify_host_mode(struct usb_otg *otg, int host_mode);
@@ -704,8 +707,13 @@ static void dwc3_otg_sm_work(struct work_struct *w)
 					work = 1;
 					break;
 				case DWC3_SDP_CHARGER:
-					dwc3_otg_start_peripheral(&dotg->otg,
-									1);
+				        // добавка для поддержки jrd_chgoff_flag
+				        if (get_jrd_chgoff_flag() != 0) {
+					  dwc3_otg_set_power(phy,500);
+					  pm_runtime_put_sync(phy->dev);
+					  break;
+					}  
+					dwc3_otg_start_peripheral(&dotg->otg,1);
 					phy->state = OTG_STATE_B_PERIPHERAL;
 					work = 1;
 					break;
