@@ -133,7 +133,7 @@ static char *static_command_line;
 static unsigned int jrd_chgoff_flag=0;
 EXPORT_SYMBOL(jrd_chgoff_flag);
 
-unsigned int get_jrd_chgoff_flag() {
+unsigned int get_jrd_chgoff_flag(void) {
   return jrd_chgoff_flag;
 }
 EXPORT_SYMBOL(get_jrd_chgoff_flag);
