@@ -459,17 +459,30 @@ for (i=0;i<8;i++) {
   (*arm_delay_ops.const_udelay)(1073740);
 }
 if (api-> get_vntc_proc != 0) {
+  // усредняем результат 8 выборок
    rc=battery_core_calculate_average(data);
+  // проверяем наличие таблицы переода напряжения в температуру (NTC) 
    if (bat->ntc == 0) {
      pr_err("NTC convert table is NULL!\n");
      temp=25;
    }  
    else {
+     // собственно сам алгоритм табличного преобразования
+     // Пересчитываем напряжение по калибровочным коэффициетам
      if (bat->vref != bat-> vref_calib) rc=rc*bat->vref_calib/bat->vref;
+       
+     // поиск по таблице   
      for(i=0;i<bat->ntcsize-1;i++) {
-       if ((rc<bat->ntc[i].tnvc) && (rc>bat->ntc[i+1].tnvc)) temp=bat->ntc[i].tntc;
+       if ((rc<bat->ntc[i].tnvc) && (rc>bat->ntc[i+1].tnvc)) break;
      }
-   }  
+     // интерполяция таличного значения
+     bpr=(rc-bat->ntc[i].tnvc)*(bat->ntc[i+1].tntc-bat->ntc[i].tntc)*10/(bat->ntc[i+1].tnvc-bat->ntc[i].tnvc);
+     temp=bat->ntc[i].tntc+bpr/10;
+     if ((bpr%10)>4) temp++;
+     if (temp > bat->ntc[i+1].tntc) cap=bat->ntc[i+1].tntc;
+    }
+   
+   // Выставляем флаги состояния в зависимости от температуры
    health=POWER_SUPPLY_HEALTH_GOOD;
    if ((temp>bat->temp_high_poweroff) || (temp<bat->temp_low_poweroff)) health=POWER_SUPPLY_HEALTH_DEAD;
    else {
@@ -590,7 +603,7 @@ else {
  }
  //   смещение V от vmin        разность % между строками                       разность напряжений между строками
  bpr=(mvavg-bat->cap[i].vmin)*(bat->cap[i+1].percent-bat->cap[i].percent)*10/(bat->cap[i+1].vmin-bat->cap[i].vmin);
- cap=bpr/10;
+ cap=bat->cap[i].percent+bpr/10;
  if ((bpr%10)>4) cap++;
  if (cap > bat->cap[i+1].percent) cap=bat->cap[i+1].percent;
 }
