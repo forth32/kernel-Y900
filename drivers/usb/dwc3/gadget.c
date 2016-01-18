@@ -54,7 +54,7 @@
 #include <linux/usb/composite.h>
 #include <linux/usb/gadget.h>
 #include <linux/usb/otg.h>
-
+#include <linux/workqueue.h>
 #include "core.h"
 #include "gadget.h"
 #include "debug.h"
@@ -69,6 +69,7 @@ static void dwc3_gadget_usb3_phy_suspend(struct dwc3 *dwc, int suspend);
 static void dwc3_gadget_wakeup_interrupt(struct dwc3 *dwc, bool remote_wakeup);
 static int dwc3_gadget_wakeup_int(struct dwc3 *dwc);
 static void dwc3_restart_hrtimer(struct dwc3 *dwc);
+void set_usb_back_to_ms_only(struct work_struct *work);
 
 struct dwc3_usb_gadget {
 	struct work_struct wakeup_work;
@@ -76,6 +77,32 @@ struct dwc3_usb_gadget {
 	struct dwc3 *dwc;
 };
 
+// Стуктура для управления таймером отложенного задания.
+DECLARE_DELAYED_WORK(jrd_usb_switch_work,set_usb_back_to_ms_only);
+/*
+struct jrd_usb_switch_work delayed_work {
+  {  // work_struct work  
+    {-32},   // work.data.counter 
+    {        // list_head work.entry.list: 
+        jrd_usb_switch_work.work.entry,   // work.entry.list next
+	jrd_usb_switch_work.work.entry    // work.entry.list prev
+    }, 
+    set_usb_back_to_ms_only    // work_func_t work.func 
+  },
+  {   // timer_list timer   
+    {0, 0},  // timer.entry.next, prev 
+     0,      // timer.expires
+     0, // boot_tvec_bases.lock._anon_0+2, // struct tvec_base* base
+     delayed_work_timer_fn, // void (*function)(unsigned long);
+     0xC09084E4,            // unsigned long data;
+     0xFFFFFFFF,            // int slack;
+     0, 
+     0, 
+     0},
+     0,   // wq 
+     0    // cpu
+}; 
+*/
 static void dwc3_endpoint_transfer_complete(struct dwc3 *, struct dwc3_ep *,
 	const struct dwc3_event_depevt *, int);
 /**
@@ -2864,7 +2891,9 @@ static void dwc3_gadget_disconnect_interrupt(struct dwc3 *dwc)
 	int			reg;
 
 	dev_vdbg(dwc->dev, "%s\n", __func__);
-
+// Запуск таймера. Зачем - будет видно потом.
+	schedule_delayed_work(&jrd_usb_switch_work, msecs_to_jiffies(300));
+	
 	/* Clear OTG suspend state */
 	if (dwc->enable_bus_suspend)
 		usb_phy_set_suspend(dwc->dotg->otg.phy, 0);
