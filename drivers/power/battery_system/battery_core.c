@@ -687,14 +687,17 @@ switch (bat->status) {
 
 //if (debug_mode != 0) dynamic_pr_debug("Battery %s(%dC), last_event=%s\n",battery_core_update_temperature_event,temp,
 
-//  сообщаем заряднику о текущем ограничении зарядного тока
-if (bat->charger != 0) {
-  capi=bat->charger->api;
-  current_max=bat->current_max;
-  if (capi->notify_event != 0) (*capi->notify_event)(capi,4,&current_max);
+if ((new_status>0) && (new_status<3) { // charging или discharging
+ //  сообщаем заряднику о текущем ограничении зарядного тока
+ if (bat->charger != 0) {
+   capi=bat->charger->api;
+   current_max=bat->current_max;
+   if (capi->notify_event != 0) (*capi->notify_event)(capi,4,&current_max);
+ }
+ // сообщаем о смене режима питания
+ battery_core_external_power_changed(&bat->psy);
 }
 
-if (new_status>3) battery_core_external_power_changed(&bat->psy);
 if (bat->status == POWER_SUPPLY_STATUS_DISCHARGING) monperiod=bat->dischg_mon_period;
     else monperiod=bat->chg_mon_period;
 queue_delayed_work_on(1,bat->mon_queue,&bat->work ,msecs_to_jiffies(monperiod));
