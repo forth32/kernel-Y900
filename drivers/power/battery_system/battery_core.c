@@ -687,7 +687,7 @@ switch (bat->status) {
 
 //if (debug_mode != 0) dynamic_pr_debug("Battery %s(%dC), last_event=%s\n",battery_core_update_temperature_event,temp,
 
-if ((new_status>0) && (new_status<3) { // charging или discharging
+if ((new_status>0) && (new_status<3)) { // charging или discharging
  //  сообщаем заряднику о текущем ограничении зарядного тока
  if (bat->charger != 0) {
    capi=bat->charger->api;
