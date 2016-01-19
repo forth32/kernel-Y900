@@ -96,6 +96,8 @@
 #define HOT_SOFT_VFLOAT_COMP_EN_BIT	BIT(3)
 #define COLD_SOFT_VFLOAT_COMP_EN_BIT	BIT(2)
 
+#define CFG_1C_REG			0x1C
+
 #define VFLOAT_REG			0x1E
 
 #define VERSION1_REG			0x2A
@@ -2533,7 +2535,14 @@ if (rc < 0) {
 	return rc;
 }
 
-return rc;
+//########## Добавка для попытки заставить работать зарядку #########################3
+
+smb135x_masked_write(chip, CFG_1A_REG, BIT(6), 1);   
+smb135x_masked_write(chip, CFG_1C_REG, BIT(1), 1);
+smb135x_masked_write(chip, CFG_1C_REG, BIT(4), 0);
+
+
+return 0;
 }
 
 //**************************************
