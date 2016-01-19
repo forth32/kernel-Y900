@@ -2535,10 +2535,11 @@ if (rc < 0) {
 	return rc;
 }
 
-//########## Добавка для попытки заставить работать зарядку #########################3
+//########## Добавка для попытки заставить работать зарядку #########################
 
-smb135x_masked_write(chip, CFG_1A_REG, BIT(6), 1);   
-smb135x_masked_write(chip, CFG_1C_REG, BIT(1), 1);
+smb135x_masked_write(chip, CFG_1A_REG, 0x70, 0x40);   
+
+smb135x_masked_write(chip, CFG_1C_REG, BIT(1), 2);
 smb135x_masked_write(chip, CFG_1C_REG, BIT(4), 0);
 
 
