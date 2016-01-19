@@ -2570,6 +2570,15 @@ if (chip->core.soft_vfloat_comp_disabled) {
 	}
 }
 
+//***** Настройка температурного монитора **********8
+if (chip->core.temp_monitor_disabled == 0) i=0x40;
+else i=0;
+rc = smb135x_masked_write(chip,CFG_1A_REG,0x40,i);
+if (rc<0) {
+  dev_err(chip->dev, "Couldn't enable/disable temperature monitor  rc = %d",rc);
+  return rc;
+}  
+
 /*
  * Command mode for OTG control. This gives us RID interrupts but keeps
  * enabling the 5V OTG via i2c register control
