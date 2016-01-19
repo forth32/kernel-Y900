@@ -431,7 +431,8 @@ int cap;
 int current_max;
 int integrated_volt, mvavg;
 int dv,cm;
-int bpr,offset,capupdate,hyst;
+int bpr,offset,capupdate;
+// int hyst;
 int monperiod;
 
 // Хранилище для вычисления среднего напряжения между циклами монитора (интегратор напряжения)
@@ -613,6 +614,7 @@ else {
 }
 
 // Провряем, не попадает ли напряжение на границу перехода процентов
+/*
 if (bat->test_mode != 0) capupdate=1;
 else {
   capupdate=0;
@@ -622,7 +624,8 @@ else {
   hyst=bat->cap[i].hysteresis;
   if ((mvavg < (bat->cap[i].vmin-hyst)) || (mvavg > (bat->cap[i].vmax+hyst))) capupdate=1;
 }
-
+*/
+capupdate=1;
 nocap:
 
 mutex_lock(&bat->lock);
@@ -681,6 +684,8 @@ switch (bat->status) {
    default:
     new_status=POWER_SUPPLY_STATUS_UNKNOWN;
 }
+
+//if (debug_mode != 0) dynamic_pr_debug("Battery %s(%dC), last_event=%s\n",battery_core_update_temperature_event,temp,
 
 //  сообщаем заряднику о текущем ограничении зарядного тока
 if (bat->charger != 0) {
