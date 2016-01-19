@@ -31,7 +31,7 @@ module_param(max_chgr_retry_count, int, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(max_chgr_retry_count, "Max invalid charger retry count");
 
 //extern unsigned int jrd_chgoff_flag;
-unsigned int get_jrd_chgoff_flag(void);
+unsigned int get_jrd_chgoff_flag();
 
 static void dwc3_otg_reset(struct dwc3_otg *dotg);
 static int dwc3_otg_set_host(struct usb_otg *otg, struct usb_bus *host);

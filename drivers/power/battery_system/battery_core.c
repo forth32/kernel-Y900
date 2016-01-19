@@ -449,7 +449,6 @@ else {
 //  else r7=-22;  
 }
 
-rc=1;
 for (i=0;i<8;i++) {
   if (api-> get_vntc_proc != 0) rc= (*api-> get_vntc_proc)(api,&data[i]);
   else if (api-> x40 != 0) rc= (api-> x40)(api->thisptr,&data[i]);
@@ -521,15 +520,11 @@ if (bat->charger != 0) {
 
 
 // 8 выборок напряжения
-if (api-> get_vbat_proc == 0) {
-  volt=0;
-  goto no_vbat_proc;
-}
+if (api-> get_vbat_proc == 0) goto no_vbat_proc;
 for (i=0;i<8;i++) {
   rc= (*api-> get_vbat_proc)(api,&data[i]);
   if (rc != 0) {
     pr_err("failed to measure battery voltage, rc=%d\n",rc);
-    volt=0;
     goto no_vbat_proc;
   }  
   (*arm_delay_ops.const_udelay)(1073740);  // задержка на время нового преобразования
@@ -989,10 +984,7 @@ switch(off) {
     // debug_mode
     res=bat->debug_mode;
     break;
-    
-  default:
-    res=0;
-    break; 
+     
 }     
     
 return sprintf(buf,"%d\n",res);
