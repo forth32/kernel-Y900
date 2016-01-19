@@ -35,7 +35,7 @@ static int registered_count=0;
 //********************************************
 int charger_core_get_adapter(struct adapter *ada) {
 
-int online,rc,current_max,scope;  
+int online=0,rc,current_max=0,scope=0;  
 union power_supply_propval prop;
 
 

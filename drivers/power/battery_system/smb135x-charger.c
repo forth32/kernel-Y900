@@ -465,6 +465,42 @@ static int dc_current_table[] = {
 	2000,
 };
 
+//#################
+static int fast_charge_current_table[] = {
+ 300,
+ 400,
+ 450,
+ 475,
+ 500,
+ 550,
+ 600,
+ 650,
+ 700,
+ 900,
+ 950,
+ 1000,
+ 1100,
+ 1200,
+ 1400,
+ 1450,
+ 1500,
+ 1600,
+ 1800,
+ 1850,
+ 1880,
+ 1910,
+ 1930,
+ 1950,
+ 1970,
+ 2000,
+ 2050,
+ 2100,
+ 2300,
+ 2400,
+ 2500,
+ 3000
+};
+
 #define CURRENT_100_MA		100
 #define CURRENT_150_MA		150
 #define CURRENT_500_MA		500
@@ -2317,6 +2353,17 @@ if (rc < 0) {
 	return rc;
 }
 
+//######## Добавка для настройки регистра 1С
+for (i=31;i>0;i--) {
+  if (fast_charge_current_table[i] <= 2000) break;
+}
+rc=smb135x_masked_write(chip,CFG_1C_REG,0x1f,i&0x1f);
+if (rc<0) {
+  dev_err(chip->dev, "Couldn't set dc charge current rc = %d\n",rc);
+  return rc;
+}  
+
+
 /* control USB suspend via command bits */
 rc = smb135x_masked_write(chip, USBIN_DCIN_CFG_REG,
 	USBIN_SUSPEND_VIA_COMMAND_BIT, USBIN_SUSPEND_VIA_COMMAND_BIT);
@@ -2537,10 +2584,10 @@ if (rc < 0) {
 
 //########## Добавка для попытки заставить работать зарядку #########################
 
-smb135x_masked_write(chip, CFG_1A_REG, 0x70, 0x40);   
+smb135x_masked_write(chip, CFG_1A_REG, 0x70, 0);   
 
-smb135x_masked_write(chip, CFG_1C_REG, BIT(1), 2);
-smb135x_masked_write(chip, CFG_1C_REG, BIT(4), 0);
+//smb135x_masked_write(chip, CFG_1C_REG, BIT(1), 2);
+//smb135x_masked_write(chip, CFG_1C_REG, BIT(4), 0);
 
 
 return 0;
