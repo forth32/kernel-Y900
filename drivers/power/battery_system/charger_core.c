@@ -65,7 +65,7 @@ else current_max=0;
 ada->max_ma=current_max;
 if (ada->name == 0) return 0;
 if (strlen(ada->name) != 0) 
-   pr_info("adapter[%s]: scope=%d, online=%d, current_max=%dmA\n",ada->name,scope,online,current_max);
+   pr_info("adapter[%s]: current_max=%dmA\n",ada->name,current_max);
 return 0;
 }
 
