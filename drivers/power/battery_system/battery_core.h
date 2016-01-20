@@ -72,8 +72,8 @@ struct battery_core_interface {
 // int x392;
    int chg_mon_period; // 396
    int dischg_mon_period;
-   int new_status; // 404
-   int x408;
+   int power_event; // 404
+   int event;
    char* bname;  //412
    int status;        //416
    int current_now;   //420
@@ -82,7 +82,7 @@ struct battery_core_interface {
    int volt_avg;      //432
    int volt_max;      //436
    int capacity;      //440
-   int x444;        
+   int prev_capacity;        
    int x448;
    int present;       //452
    int temp;          //456

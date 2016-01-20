@@ -107,6 +107,54 @@ struct ntc_tvm ntc_tvm_tables[] = {
 #define ntc_table_size 35
 
 //*****************************************************
+//* Идентификаторы событий монитора
+//*****************************************************
+enum  {
+  BATTERY_EVENT_NONE,                    // 0
+  BATTERY_EVENT_CRITICAL_VOLTAGE,        // 1
+  BATTERY_EVENT_LOW_VOLTAGE,             // 2  
+  BATTERY_EVENT_RESUME_CHARGING,         // 3
+  BATTERY_EVENT_LOW_TEMPERATURE,         // 4
+  BATTERY_EVENT_RECOVER_FROM_LOW_TEMP,   // 5
+  BATTERY_EVENT_HIGH_TEMPERATURE,        // 6
+  BATTERY_EVENT_RECOVER_FROM_HIGH_TEMP,  // 7
+  BATTERY_EVENT_POWEROFF_TEMPERATURE,    // 8
+  BATTERY_EVENT_PLUGIN,                  // 9
+  BATTERY_EVENT_PLUGOUT                  // 10
+};  
+
+//*****************************************************
+//* Описания событий монитора
+//*****************************************************
+
+char* battery_event_strings[]= {
+  "BATTERY_EVENT_NONE",
+  "BATTERY_EVENT_CRITICAL_VOLTAGE",
+  "BATTERY_EVENT_LOW_VOLTAGE",
+  "BATTERY_EVENT_RESUME_CHARGING",
+  "BATTERY_EVENT_LOW_TEMPERATURE",
+  "BATTERY_EVENT_RECOVER_FROM_LOW_TEMP",
+  "BATTERY_EVENT_HIGH_TEMPERATURE",
+  "BATTERY_EVENT_RECOVER_FROM_HIGH_TEMP",
+  "BATTERY_EVENT_POWEROFF_TEMPERATURE",
+  "BATTERY_EVENT_PLUGIN",
+  "BATTERY_EVENT_PLUGOUT"
+};  
+
+//*****************************************************
+//* Описание состосяний работоспособности батарейки
+//*****************************************************
+char* battery_health_strings[]= {
+ "Unknown",
+ "Good Health",
+ "Overheat",
+ "Dead",
+ "Over Voltage",
+ "Unspecified Failure",
+ "Cold"
+}; 
+
+//*****************************************************
 //*   Таблица sysfs-атрибутов
 //*****************************************************
 
@@ -426,7 +474,7 @@ int rc;
 int temp=0;
 int health;
 int volt;
-int new_status;  // R6
+int power_event;  // R6
 int cap;
 int current_max;
 int integrated_volt, mvavg;
@@ -434,6 +482,8 @@ int dv,cm;
 int bpr,offset,capupdate;
 // int hyst;
 int monperiod;
+int temp_event;
+int capdelta;
 
 // Хранилище для вычисления среднего напряжения между циклами монитора (интегратор напряжения)
 static int sum,count,average,calculate_initialized;
@@ -505,6 +555,11 @@ donetemp:
 cap=99;
 memset(data,0,32);
 
+if (api-> get_vbat_proc == 0) {
+  volt=0;
+  goto no_vbat_proc;
+}  
+
 // приостанавливаем зарядку и ждем стабилизации напряжения на батарее
 if (bat->charger == 0) bat->charger=charger_core_get_charger_interface_by_name(bat->bname);
 if (bat->charger != 0) {
@@ -521,10 +576,6 @@ if (bat->charger != 0) {
 
 
 // 8 выборок напряжения
-if (api-> get_vbat_proc == 0) {
-  volt=0;
-  goto no_vbat_proc;
-}  
 for (i=0;i<8;i++) {
   rc= (*api-> get_vbat_proc)(api,&data[i]);
   if (rc != 0) {
@@ -643,51 +694,124 @@ no_vbat_proc:
 
 
 volt/=1000;
-new_status=bat->status;
+power_event=bat->status;
 
-switch (bat->status) {
+// Формирование статуса зарядки
+if (api-> get_vbat_proc != 0) switch (bat->status) {
+  //%%%%%%%%%%%%%%%%%%%%%
   case POWER_SUPPLY_STATUS_DISCHARGING:
     if (volt<bat->poweroff_volt) {
-      bat->new_status=POWER_SUPPLY_STATUS_CHARGING;
-      new_status=POWER_SUPPLY_STATUS_CHARGING;
+      // напряжение ниже критически низкого
+      power_event=1;         
+      bat->power_event=1;  
       break;
     }
     if (volt>=bat->low_volt) {
-      new_status=POWER_SUPPLY_STATUS_UNKNOWN;
+      // напряжение в норме
+      power_event=0;   
       break;
     }
-    if (bat->new_status == 2) new_status=POWER_SUPPLY_STATUS_UNKNOWN;
-    bat->new_status=new_status;
+    // Если напряжение находится в пределах poweroff_volt < volt <= low_volt
+    if (bat->power_event != 2) { 
+      power_event=2;  // второй проход - 2
+      bat->power_event=2;
+      break;
+    }  
+    power_event=0;  // первый проход - 0
     break;
    
+  //%%%%%%%%%%%%%%%%%%%%%
    case POWER_SUPPLY_STATUS_NOT_CHARGING:
     if (bat-> present == 0) {
-      new_status=POWER_SUPPLY_STATUS_UNKNOWN;
+      // батарейки нет
+      power_event=0;
       break;
     }
     if (bat-> health != POWER_SUPPLY_HEALTH_GOOD) {
-      new_status=POWER_SUPPLY_STATUS_UNKNOWN;
+      // батарейка есть, но дохлая
+      power_event=0;
       break;
     }
     if (volt<bat->recharge_volt) {
-      bat->new_status=new_status;
+      // напряжение упало ниже напряжения повторного запуска зарядки
+      bat->power_event=3;
       break;
     }
-    new_status=POWER_SUPPLY_STATUS_UNKNOWN;
+    power_event=0;
     break;
 
+  //%%%%%%%%%%%%%%%%%%%%%
    case POWER_SUPPLY_STATUS_CHARGING:
-    new_status=POWER_SUPPLY_STATUS_UNKNOWN;
-    bat->new_status=new_status;
+    power_event=0;
+    bat->power_event=power_event;
     break;
     
+  //%%%%%%%%%%%%%%%%%%%%%
    default:
-    new_status=POWER_SUPPLY_STATUS_UNKNOWN;
+    power_event=0;
 }
 
-//if (debug_mode != 0) dynamic_pr_debug("Battery %s(%dC), last_event=%s\n",battery_core_update_temperature_event,temp,
+if (bat->debug_mode != 0) dynamic_pr_debug("Battery %s(%dC), last_event=%s\n",
+    battery_health_strings[bat->health],
+    temp,
+    battery_event_strings[bat->event]);
 
-if ((new_status>0) && (new_status<3)) { // charging или discharging
+// разбор и формирование event
+if (bat->present != 0) {
+  if (bat->event== BATTERY_EVENT_PLUGOUT) bat->event=BATTERY_EVENT_PLUGIN;
+}
+else switch(bat->health) {
+   case POWER_SUPPLY_HEALTH_GOOD:
+    if (bat->event == BATTERY_EVENT_LOW_TEMPERATURE) {
+      bat->event=BATTERY_EVENT_RECOVER_FROM_LOW_TEMP;
+      temp_event=BATTERY_EVENT_RECOVER_FROM_LOW_TEMP;
+      break;
+    }
+    if (bat->event == BATTERY_EVENT_HIGH_TEMPERATURE) {
+      bat->event=BATTERY_EVENT_RECOVER_FROM_HIGH_TEMP;
+      temp_event=BATTERY_EVENT_RECOVER_FROM_HIGH_TEMP;
+      break;
+    }    
+    temp_event=0;
+    break;
+    
+   case POWER_SUPPLY_HEALTH_COLD:
+    if (bat->event != BATTERY_EVENT_LOW_TEMPERATURE) {
+      bat->event=BATTERY_EVENT_LOW_TEMPERATURE;
+      temp_event=BATTERY_EVENT_LOW_TEMPERATURE;
+      break;
+    }
+    temp_event=0;
+    break;
+    
+   case POWER_SUPPLY_HEALTH_OVERHEAT:
+    if (bat->event != BATTERY_EVENT_HIGH_TEMPERATURE) {
+      bat->event=BATTERY_EVENT_HIGH_TEMPERATURE;
+      temp_event=BATTERY_EVENT_HIGH_TEMPERATURE;
+      break;
+    }
+    temp_event=0;
+    break;
+
+   case POWER_SUPPLY_HEALTH_DEAD:
+     bat->event=BATTERY_EVENT_POWEROFF_TEMPERATURE;
+     temp_event=BATTERY_EVENT_POWEROFF_TEMPERATURE;
+     break;
+     
+    
+   case POWER_SUPPLY_HEALTH_WARM:
+   case POWER_SUPPLY_HEALTH_OVERVOLTAGE:
+   case POWER_SUPPLY_HEALTH_UNSPEC_FAILURE:
+   default:
+    temp_event=0;
+    break;
+}   
+
+if (bat->debug_mode != 0) dynamic_pr_debug("event[voltage]=%s, event[temp]=%s\n",
+    battery_event_strings[power_event],
+    battery_event_strings[temp_event]);
+
+if ((power_event>0) && (power_event<3)) { // батарейка не зряжается, режим питания изменился
  //  сообщаем заряднику о текущем ограничении зарядного тока
  if (bat->charger != 0) {
    capi=bat->charger->api;
@@ -698,6 +822,48 @@ if ((new_status>0) && (new_status<3)) { // charging или discharging
  battery_core_external_power_changed(&bat->psy);
 }
 
+switch(temp_event) {
+  case BATTERY_EVENT_HIGH_TEMPERATURE:
+  case BATTERY_EVENT_PLUGOUT:
+    current_max=0;
+    break;
+  case BATTERY_EVENT_RECOVER_FROM_LOW_TEMP:
+  case BATTERY_EVENT_RECOVER_FROM_HIGH_TEMP:
+  case BATTERY_EVENT_PLUGIN:
+    current_max=bat->current_max;
+    break;
+  default:
+    goto notempevent;
+}    
+ //  сообщаем заряднику о текущем ограничении зарядного тока
+ if (bat->charger != 0) {
+   capi=bat->charger->api;
+   if (capi->notify_event != 0) (*capi->notify_event)(capi,4,&current_max);
+ }
+ // сообщаем о смене режима питания
+ battery_core_external_power_changed(&bat->psy);
+
+notempevent:
+
+// проверяем критерии приостановки зарядки
+if (bat->status == POWER_SUPPLY_STATUS_CHARGING) {
+  if ((bat->disable_chg =! 0)  || ((bat->volt_now/1000) >= bat->high_voltage)) {
+    i=bat->disable_chg;
+    bat->disable_chg=1;
+    battery_core_external_power_changed(&bat->psy);
+    bat->disable_chg=i;
+  }
+}  
+
+// соощение о смене режиме питания при изменении зарядна на cap_changed_margin
+capdelta=abs(bat->capacity - bat->prev_capacity);
+if ((capdelta >= bat->cap_changed_margin) || ((capdelta != 0) && (bat->capacity == 100))) {
+  bat->prev_capacity=bat->capacity;
+  power_supply_changed(&bat->psy);
+}
+
+ 
+ 
 if (bat->status == POWER_SUPPLY_STATUS_DISCHARGING) monperiod=bat->dischg_mon_period;
     else monperiod=bat->chg_mon_period;
 queue_delayed_work_on(1,bat->mon_queue,&bat->work ,msecs_to_jiffies(monperiod));
@@ -1069,7 +1235,7 @@ bat->volt_max=4350000;
 bat->bname=api->bname;
 bat->current_max=1000000;
 bat->current_now=0;
-bat->x444=0;
+bat->prev_capacity=0;
 bat->volt_now=0;
 bat->volt_avg=0;
 bat->capacity=80;
@@ -1127,8 +1293,8 @@ bat->work.work.data.counter=-32;
 bat->work.work.entry.next=&bat->work.work.entry;
 bat->work.work.entry.prev=&bat->work.work.entry;
 
-bat->new_status=0;
-bat->x408=0;
+bat->power_event=0;
+bat->event=0;
 bat->work.work.func=battery_core_monitor_work;
 
 init_timer_key(&bat->work.timer,2,0,0);
