@@ -482,7 +482,7 @@ int dv,cm;
 int bpr,offset,capupdate;
 int hyst;
 int monperiod;
-int temp_event;
+int temp_event=0;
 int capdelta;
 
 // Хранилище для вычисления среднего напряжения между циклами монитора (интегратор напряжения)
