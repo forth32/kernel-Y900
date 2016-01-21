@@ -655,7 +655,7 @@ else {
  for (i=0;i<bat->capsize;i++) {
    if (bat->status == POWER_SUPPLY_STATUS_DISCHARGING) offset=0;
    else offset=bat->cap[i].offset;
-   if (((mvavg+offset) > bat->cap[i].vmin) && ((mvavg+offset) <= bat->cap[i].vmax)) break;
+   if (((mvavg+offset) >= bat->cap[i].vmin) && ((mvavg+offset) <= bat->cap[i].vmax)) break;
  }
  //   смещение V от vmin        разность % между строками                       разность напряжений между строками
  bpr=(mvavg-bat->cap[i].vmin)*(bat->cap[i+1].percent-bat->cap[i].percent)*10/(bat->cap[i+1].vmin-bat->cap[i].vmin);
