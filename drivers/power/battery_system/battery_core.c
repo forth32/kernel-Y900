@@ -480,7 +480,7 @@ int current_max;
 int integrated_volt, mvavg;
 int dv,cm;
 int bpr,offset,capupdate;
-// int hyst;
+int hyst;
 int monperiod;
 int temp_event;
 int capdelta;
@@ -665,7 +665,7 @@ else {
 }
 
 // Провряем, не попадает ли напряжение на границу перехода процентов
-/*
+
 if (bat->test_mode != 0) capupdate=1;
 else {
   capupdate=0;
@@ -675,8 +675,8 @@ else {
   hyst=bat->cap[i].hysteresis;
   if ((mvavg < (bat->cap[i].vmin-hyst)) || (mvavg > (bat->cap[i].vmax+hyst))) capupdate=1;
 }
-*/
-capupdate=1;
+if (cap != bat->capacity) capupdate=1;
+
 nocap:
 
 mutex_lock(&bat->lock);
