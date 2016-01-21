@@ -751,7 +751,7 @@ if (api-> get_vbat_proc != 0) switch (bat->status) {
     power_event=0;
 }
 
-if (bat->debug_mode != 0) dynamic_pr_debug("Battery %s(%dC), last_event=%s\n",
+if (bat->debug_mode != 0) pr_info("Battery %s(%dC), last_event=%s\n",
     battery_health_strings[bat->health],
     temp,
     battery_event_strings[bat->event]);
@@ -807,7 +807,7 @@ else switch(bat->health) {
     break;
 }   
 
-if (bat->debug_mode != 0) dynamic_pr_debug("event[voltage]=%s, event[temp]=%s\n",
+if (bat->debug_mode != 0) pr_info("event[voltage]=%s, event[temp]=%s\n",
     battery_event_strings[power_event],
     battery_event_strings[temp_event]);
 
