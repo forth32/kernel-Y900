@@ -669,7 +669,7 @@ else {
 if (bat->test_mode != 0) capupdate=1;
 else {
   capupdate=0;
-  for (i=bat->capsize-1;i>0;i++) {
+  for (i=bat->capsize-1;i>0;i--) {
     if (bat->capacity > bat->cap[i-1].percent) break;
   }
   hyst=bat->cap[i].hysteresis;
