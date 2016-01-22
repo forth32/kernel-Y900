@@ -694,7 +694,7 @@ no_vbat_proc:
 
 
 volt/=1000;
-power_event=bat->status;
+//power_event=bat->status;
 
 // Формирование статуса зарядки
 if (api-> get_vbat_proc != 0) switch (bat->status) {
@@ -702,8 +702,8 @@ if (api-> get_vbat_proc != 0) switch (bat->status) {
   case POWER_SUPPLY_STATUS_DISCHARGING:
     if (volt<bat->poweroff_volt) {
       // напряжение ниже критически низкого
-      power_event=1;         
-      bat->power_event=1;  
+      power_event=BATTERY_EVENT_CRITICAL_VOLTAGE;         
+      bat->power_event=BATTERY_EVENT_CRITICAL_VOLTAGE;  
       break;
     }
     if (volt>=bat->low_volt) {
@@ -712,9 +712,9 @@ if (api-> get_vbat_proc != 0) switch (bat->status) {
       break;
     }
     // Если напряжение находится в пределах poweroff_volt < volt <= low_volt
-    if (bat->power_event != 2) { 
-      power_event=2;  // второй проход - 2
-      bat->power_event=2;
+    if (bat->power_event != BATTERY_EVENT_LOW_VOLTAGE) { 
+      power_event=BATTERY_EVENT_LOW_VOLTAGE;  // второй проход - 2
+      bat->power_event=BATTERY_EVENT_LOW_VOLTAGE;
       break;
     }  
     power_event=0;  // первый проход - 0
@@ -734,7 +734,7 @@ if (api-> get_vbat_proc != 0) switch (bat->status) {
     }
     if (volt<bat->recharge_volt) {
       // напряжение упало ниже напряжения повторного запуска зарядки
-      bat->power_event=3;
+      bat->power_event=BATTERY_EVENT_RESUME_CHARGING;
       break;
     }
     power_event=0;
@@ -743,7 +743,7 @@ if (api-> get_vbat_proc != 0) switch (bat->status) {
   //%%%%%%%%%%%%%%%%%%%%%
    case POWER_SUPPLY_STATUS_CHARGING:
     power_event=0;
-    bat->power_event=power_event;
+    bat->power_event=0;
     break;
     
   //%%%%%%%%%%%%%%%%%%%%%
@@ -811,7 +811,8 @@ if (bat->debug_mode != 0) pr_info("event[voltage]=%s, event[temp]=%s\n",
     battery_event_strings[power_event],
     battery_event_strings[temp_event]);
 
-if ((power_event>0) && (power_event<3)) { // батарейка не зряжается, режим питания изменился
+if ((power_event==BATTERY_EVENT_CRITICAL_VOLTAGE) || (power_event==BATTERY_EVENT_LOW_VOLTAGE)) { 
+ //  напряжение на батарейке вызодит за безопасные пределы
  //  сообщаем заряднику о текущем ограничении зарядного тока
  if (bat->charger != 0) {
    capi=bat->charger->api;
