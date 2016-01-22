@@ -695,6 +695,7 @@ no_vbat_proc:
 
 volt/=1000;
 //power_event=bat->status;
+power_event=0;
 
 // Формирование статуса зарядки
 if (api-> get_vbat_proc != 0) switch (bat->status) {
