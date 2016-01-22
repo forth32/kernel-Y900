@@ -111,7 +111,7 @@ if (chip->charging_state != POWER_SUPPLY_STATUS_CHARGING) return -EINVAL;
 if (chip->charging_suspend == 0) return -EINVAL;
   
 rc=(*api->enable_charge_fn)(api->parent,1);
-if (rc == 0) chip->charging_suspend=1;
+if (rc == 0) chip->charging_suspend=0;
 return rc;
 }
 
