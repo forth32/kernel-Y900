@@ -130,7 +130,7 @@ int enable;
 
 if ((self == 0) || (mA<0)) return -EINVAL;
 chip=api->self;
-//pr_err(" setchg: chip=%08x  api=%08x\n",chip,api);
+pr_info(" set_ma = %d\n",mA);
 if (api == 0) return -EINVAL;
 if (api->enable_charge_fn == 0) return -EINVAL;
 
@@ -257,8 +257,10 @@ switch(event) {
     ma=*((int*)params);
     if (ma == chip->ibat_max) return 0;
     chip->ibat_max=ma;
+    pr_info("notify event 4-1 ma=%d\n",ma);	
     if (chip->charging_state != POWER_SUPPLY_STATUS_CHARGING) return 0;
     if (api->set_charging_current == 0) return 0;
+    pr_info("notify event 4-2 ma=%d\n",ma);	
     rc=api->set_charging_current(api,ma);    
     if (rc != 0) pr_err("failed to adjust charging current %dmA to %dmA\n",chip->ichg_now,chip->ibat_max);
     return rc;

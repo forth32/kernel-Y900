@@ -404,7 +404,7 @@ struct charger_interface* api;
 
 chg_info.ichg_now=0;
 chg_info.ada_connected=0;
-
+pr_info("set_ibat: ma=%d",mA);
 if (bat->charger == 0) bat->charger=charger_core_get_charger_interface_by_name(bat->bname);
 if (bat->charger != 0) {
   api=bat->charger->api;
@@ -487,7 +487,6 @@ int capdelta;
 
 // Хранилище для вычисления среднего напряжения между циклами монитора (интегратор напряжения)
 static int sum,count,average,calculate_initialized;
-
 
 if (!bat->ws.active) __pm_stay_awake(&bat->ws);
 api=bat->api;
@@ -849,7 +848,7 @@ notempevent:
 
 // проверяем критерии приостановки зарядки
 if (bat->status == POWER_SUPPLY_STATUS_CHARGING) {
-  if ((bat->disable_chg =! 0)  || ((bat->volt_now/1000) >= bat->high_voltage)) {
+  if ((bat->disable_chg != 0)  || ((bat->volt_now/1000) >= bat->high_voltage)) {
     i=bat->disable_chg;
     bat->disable_chg=1;
     battery_core_external_power_changed(&bat->psy);
@@ -1248,7 +1247,7 @@ bat->present=1;
 bat->health=POWER_SUPPLY_HEALTH_UNKNOWN;
 bat->vref=1800000;
 bat->vref_calib=1800000;
-bat->debug_mode=0;
+bat->debug_mode=1;
 bat->test_mode=0;
 
 bat->ntc=ntc_tvm_tables;
