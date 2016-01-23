@@ -226,6 +226,7 @@
 #define IRQ_G_REG			0x56
 #define IRQ_G_SRC_DETECT_BIT		BIT(6)
 
+
 static struct of_device_id smb135x_match_table[];
 
 

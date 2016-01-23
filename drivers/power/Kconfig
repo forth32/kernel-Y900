@@ -383,7 +383,7 @@ config SMB350_CHARGER
 	  The driver reports the charger status via the power supply framework.
 	  A charger status change triggers an IRQ via the device STAT pin.
 
-config SMB135X_CHARGER
+menuconfig SMB135X_CHARGER
 	tristate "SMB135X Battery Charger"
 	depends on I2C
 	help
@@ -394,6 +394,13 @@ config SMB135X_CHARGER
 	  The driver reports the charger status via the power supply framework.
 	  A charger status change triggers an IRQ via the device STAT pin.
 
+config SMB135X_CHARGER_TURBO
+        bool "Use smb135x TurboCharge function"
+        depends on SMB135X_CHARGER
+        help
+          Say Y to disable 500mA current limit on USB2.0 connections
+          This option expands USB2.0 current to 1000mA.
+          
 config SMB1360_CHARGER_FG
 	tristate "SMB1360 Charger and Fuel Guage"
 	depends on I2C

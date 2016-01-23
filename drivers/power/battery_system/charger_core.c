@@ -145,6 +145,13 @@ charger_core_get_adapter(&api->ad144);
 api->ad160.af12=2;
 charger_core_get_adapter(&api->ad160);	
 
+//++++++++++++++++++++++++++++++++++++++++++++++
+// Грязный хак для обхода ограничения тока USB
+#ifdef SMB135XTURBO
+if (api->ad_usb.max_ma != 0) api->ad_usb.max_ma=1000;
+#endif
+//++++++++++++++++++++++++++++++++++++++++++++++
+
 max_src_ma=max(api->ad_usb.max_ma,api->ad128.max_ma);
 max_src_ma=max(max_src_ma,api->ad144.max_ma);
 

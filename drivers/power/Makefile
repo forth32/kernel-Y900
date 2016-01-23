@@ -54,6 +54,7 @@ obj-$(CONFIG_CHARGER_BQ2415X)	+= bq2415x_charger.o
 obj-$(CONFIG_POWER_AVS)		+= avs/
 obj-$(CONFIG_SMB349_USB_CHARGER)   += smb349-charger.o
 obj-$(CONFIG_SMB350_CHARGER)   += smb350_charger.o
+ccflags-$(CONFIG_SMB135X_CHARGER_TURBO) := -DSMB135XTURBO
 obj-$(CONFIG_SMB135X_CHARGER)   += battery_system/smb135x-charger.o battery_system/charger_core.o
 obj-$(CONFIG_SMB1360_CHARGER_FG) += smb1360-charger-fg.o
 obj-$(CONFIG_BATTERY_BQ28400)	+= bq28400_battery.o
