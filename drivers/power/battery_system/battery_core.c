@@ -896,7 +896,7 @@ if (strncmp(params,"CAP:",4) == 0) {
 		   bat->cap[i].vmax,
 		   bat->cap[i].offset,
 		   bat->cap[i].hysteresis);
-  pr_info("CAPACITY_TABLES[%d]:\n %s\n",bat->capsize,buf);
+  pr_info("CAPACITY_TABLES[%d]:\n%s\n",bat->capsize,buf);
   return 0;
 }
 pr_err("NO MATCH:params=%s\n",params);
@@ -904,13 +904,105 @@ return -EINVAL;
 }  
 
 //*****************************************************
-//* Модификация таблицы ткмператур
+//* Модификация таблицы температур
 //*****************************************************
-int battery_core_set_battery_ntc_tables(struct battery_core_interface* bat,const char* buf,size_t count) {
-  // пока заглушка
-  return 0;
-}  
+int battery_core_set_battery_ntc_tables(struct battery_core_interface* bat,const char* params,int len) {
 
+char buf[512];
+int rc,i;
+long res;
+int line; // текущий # строки временной таблицы
+void* tmp_tab;
+struct ntc_tvm rec;
+
+memset(buf,0,512);
+if ((params == 0) || (bat == 0)) return -EINVAL;
+
+// параметр SIZE
+if (strncmp(params,"SIZE:",5) == 0) {
+  rc=kstrtol(params+5,10,&res);
+  if ((rc != 0) || (res == 0)) {
+    pr_err("INVALID:params=%s\n",params);
+    return rc;
+  }
+  pr_info("loading NTC table, size=%ld\n",res);
+  if (bat->ntcload_buf != 0) {
+    kfree(bat->ntcload_buf);
+    bat->ntcload_vref=0;
+    bat->ntcload_vref_calib=0;
+    bat->ntcload_buf=0;
+    bat->ntcload_size=0;
+    bat->ntcload_count=0;
+  }
+  bat->ntcload_buf=kzalloc(res*8,GFP_KERNEL);
+  if (bat->ntcload_buf == 0) {
+    pr_err("fail to allocate memory!\n");
+    return -ENOMEM;
+  }
+  bat->ntcload_size=res;
+  bat->ntcload_count=res;
+  return 0;
+}
+
+// парамер VREF
+if (strncmp(params,"VREF:",5) == 0) {
+  rc=kstrtol(params+5,10,&res);
+  if (rc != 0) {
+    pr_err("INVALID:params=%s\n",params);
+    return rc;
+  }
+  bat->ntcload_vref=res;
+  pr_info("VREF loaded: %ld\n",res);
+  return 0;
+}
+
+// параметр VREF_CALIB
+if (strncmp(params,"VREF_CALIB:",11) == 0) {
+  rc=kstrtol(params+11,10,&res);
+  if (rc != 0) {
+    pr_err("INVALID:params=%s\n",params);
+    return rc;
+  }
+  bat->ntcload_vref_calib=res;
+  pr_info("VREF_calib loaded: %ld\n",res);
+  return 0;
+}
+  
+// параметр ntc_tvm
+if (strncmp(params,"TVM:",4) == 0) {
+  rc=sscanf(params+4,"%d,%d\n",&rec.tntc,&rec.tnvc);
+  if (rc != 2) {
+    pr_err("INVALID:params=%s\n",params);
+    return -EINVAL;
+  }
+  if (bat->ntcload_buf == 0) return 0;
+  if (bat->ntcload_count <= 0) return 0;
+  line=bat->ntcload_size - bat->ntcload_count;
+  if (line >= 0) {
+    memcpy(bat->ntcload_buf+line*8,&rec,8);
+  }
+  bat->ntcload_count--;
+  if (bat->ntcload_count > 0) return 0;
+  tmp_tab=bat->ntc;
+  if ((bat->ntcload_vref <=0) || (bat->ntcload_vref_calib <= 0)) bat->ntcload_vref_calib=bat->ntcload_vref;
+  memcpy(&bat->vref, &bat->ntcload_vref, 16);
+  __memzero(&bat->ntcload_vref,20);
+  if (tmp_tab != ntc_tvm_tables) kfree(tmp_tab);
+  pr_info("capacity table loaded\n");
+  if (bat->debug_mode == 0) return 0;
+  // вывод готовой таблицы
+  line=0;
+  for(i=0;i<bat->ntcsize;i++) 
+    line+=snprintf(buf+line,512-line,"%dC:%d\n",
+		   bat->ntc[i].tntc,
+		   bat->ntc[i].tnvc);
+  pr_info("NTC[%d]: vref=%d, vref_calib=%d:\n%s\n",bat->ntcsize,bat->vref, bat->vref_calib,buf);
+  return 0;
+}
+pr_err("NO MATCH:params=%s\n",params);
+return -EINVAL;
+}  
+  
 //*****************************************************
 //*  Сохранение sysfs-параметра
 //*****************************************************
@@ -1282,10 +1374,10 @@ bat->capsize=battery_capacity_table_size;
 bat->prechare_volt=3000;
 bat->disable_chg=0;
 bat->poweroff_volt=3064;
-bat->x568=0;
+bat->ntcload_buf=0;
 bat->x484=3264;
-bat->x572=0;
-bat->x576=0;
+bat->ntcload_size=0;
+bat->ntcload_count=0;
 bat->capload_buf=0;
 bat->capload_size=0;
 bat->capload_count=0;

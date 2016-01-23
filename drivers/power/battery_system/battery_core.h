@@ -111,14 +111,14 @@ struct battery_core_interface {
    int ntcsize;          // 548
    struct capacity* cap; //552
    int capsize;  //556	
-   int x560;
-   int x564;
-   int x568;
-   int x572;
-   int x576;
-   void* capload_buf;
-   int capload_size;
-   int capload_count;
+   int ntcload_vref;  // 560
+   int ntcload_vref_calib; // 564
+   void* ntcload_buf;   // 568
+   int ntcload_size;     // 572
+   int ntcload_count;     // 576
+   void* capload_buf;  // 580
+   int capload_size;   // 584
+   int capload_count;  // 588
 };   
 
 
