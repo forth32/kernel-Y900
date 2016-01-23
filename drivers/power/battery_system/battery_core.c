@@ -599,7 +599,7 @@ if (bat-> cap == 0) {
 // выход за границы таблицы
 
 else if  (mvavg < bat->cap[0].vmin)              cap=0;
-else if  (mvavg > bat->cap[bat->capsize-1].vmin) cap=100;
+else if  (mvavg >= bat->cap[bat->capsize-1].vmin) cap=100;
 else {
  // напряжение попадает внутрь таблицы - ищем строку таблицы
  for (i=0;i<bat->capsize;i++) {
