@@ -2876,13 +2876,13 @@ int smb135x_enable_charge(void *self, int enable) {
 struct smb135x_chg* chip=self;
 int usb_supply_type;
 
-dev_info(chip->dev,"[Core]enable charging = %d",enable);
+dev_dbg(chip->dev,"[Core]enable charging = %d",enable);
 if (chip->core.usb_psy == 0) {
   dev_err(chip->dev,"[Core]get power_supply_type is UNKNOW");
   return 0;
 }
 usb_supply_type=power_supply_get_supply_type(chip->core.usb_psy);
-pr_info("[Core]get power_supply_type = %d\n",usb_supply_type);
+dev_dbg(chip->dev,"[Core]get power_supply_type = %d\n",usb_supply_type);
 if (usb_supply_type == 0) {
   dev_err(chip->dev,"[Core]get power_supply_type is UNKNOW");
   return 0;

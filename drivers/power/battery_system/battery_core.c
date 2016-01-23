@@ -158,54 +158,6 @@ char* battery_health_strings[]= {
 //*   Таблица sysfs-атрибутов
 //*****************************************************
 
-/*
-static DEVICE_ATTR(capacity,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(ntc,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(precharge_voltage,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(poweroff_voltage,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(low_voltage,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(recharge_voltage,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(charge_done_votage,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(temp_low_poweroff,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(temp_low_disable_charge,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(temp_high_disable_charge,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(temp_high_poweroff,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(temp_error_margin,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(charging_monitor_period,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(discharging_monitor_period,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(vbat_max,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(ibat_max,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(test_mode,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(disable_charging,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(high_voltage,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(capacity_changed_margin,0,battery_show_property, battery_store_property);  
-static DEVICE_ATTR(debug_mode,0,battery_show_property, battery_store_property);  
-
-static struct attribute* battery_attrs[]={
-  &dev_attr_capacity.attr,
-  &dev_attr_ntc.attr,
-  &dev_attr_precharge_voltage.attr,
-  &dev_attr_poweroff_voltage.attr,
-  &dev_attr_low_voltage.attr,
-  &dev_attr_recharge_voltage.attr,
-  &dev_attr_charge_done_votage.attr,
-  &dev_attr_temp_low_poweroff.attr,
-  &dev_attr_temp_low_disable_charge.attr,
-  &dev_attr_temp_high_disable_charge.attr,
-  &dev_attr_temp_high_poweroff.attr,
-  &dev_attr_temp_error_margin.attr,
-  &dev_attr_charging_monitor_period.attr,
-  &dev_attr_discharging_monitor_period.attr,
-  &dev_attr_vbat_max.attr,
-  &dev_attr_ibat_max.attr,
-  &dev_attr_test_mode.attr,
-  &dev_attr_disable_charging.attr,
-  &dev_attr_high_voltage.attr,
-  &dev_attr_capacity_changed_margin.attr,
-  &dev_attr_debug_mode.attr,
-  0
-};
-*/
 
 static struct device_attribute battery_dev_attrs[21]={
  {{"capacity", 0},                   &battery_show_property, &battery_store_property},
@@ -404,7 +356,6 @@ struct charger_interface* api;
 
 chg_info.ichg_now=0;
 chg_info.ada_connected=0;
-pr_info("set_ibat: ma=%d",mA);
 if (bat->charger == 0) bat->charger=charger_core_get_charger_interface_by_name(bat->bname);
 if (bat->charger != 0) {
   api=bat->charger->api;
@@ -1017,6 +968,7 @@ switch(off) {
   case 20:
     // debug_mode
     bat->debug_mode=res;
+    pr_info("Battery debug_mode changed to %ld",res);
     break;
 }    
 return count;
@@ -1247,7 +1199,7 @@ bat->present=1;
 bat->health=POWER_SUPPLY_HEALTH_UNKNOWN;
 bat->vref=1800000;
 bat->vref_calib=1800000;
-bat->debug_mode=1;
+bat->debug_mode=0;
 bat->test_mode=0;
 
 bat->ntc=ntc_tvm_tables;
