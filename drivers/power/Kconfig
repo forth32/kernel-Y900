@@ -513,7 +513,7 @@ config QPNP_LINEAR_CHARGER
 	  detection and charging. The driver also offers relevant information
 	  to userspace via the power supply framework.
 
-config BATTERY_PMD9635
+config PMD9635_BATTERY
 	tristate "PMD9635 battery"
 	depends on SPMI
 	help
