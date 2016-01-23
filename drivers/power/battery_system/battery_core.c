@@ -826,9 +826,81 @@ if (bat->ws.active != 0) __pm_relax(&bat->ws);
 //*****************************************************
 //* Модификация таблицы емкостей аккумулятора
 //*****************************************************
-int battery_core_set_battery_capacity_tables(struct battery_core_interface* bat,const char* buf,size_t count) {
-  // пока заглушка
+int battery_core_set_battery_capacity_tables(struct battery_core_interface* bat,const char* params,int len) {
+  
+char buf[512];
+int rc,i;
+long res;
+int line; // текущий # строки временной таблицы
+void* tmp_tab;
+
+struct capacity rec;
+
+memset(buf,0,512);
+if ((params == 0) || (bat == 0)) return -EINVAL;
+
+// параметр SIZE
+if (strncmp(params,"SIZE:",5) == 0) {
+  rc=kstrtol(params+5,10,&res);
+  if ((rc != 0) || (res == 0)) {
+    pr_err("INVALID:params=%s\n",params);
+    return rc;
+  }
+  pr_info("loading capacity table, size=%ld\n",res);
+  if (bat->capload_buf != 0) {
+    kfree(bat->capload_buf);
+    bat->capload_buf=0;
+    bat->capload_size=0;
+    bat->capload_count=0;
+  }
+  bat->capload_buf=kzalloc(20*res,GFP_KERNEL);
+  if (bat->capload_buf == 0) {
+    pr_err("fail to allocate memory!\n");
+    return -ENOMEM;
+  }
+  bat->capload_size=res;
+  bat->capload_count=res;
   return 0;
+}
+
+// параметр CAP
+if (strncmp(params,"CAP:",4) == 0) {
+  rc=sscanf(params+4,"%d,%d,%d,%d,%d\n",&rec.percent,&rec.vmin,&rec.vmax,&rec.offset,&rec.hysteresis);
+  if (rc != 5) {
+    pr_err("INVALID:params=%s\n",params);
+    return -EINVAL;
+  }
+  if (bat->capload_buf == 0) return 0;
+  if (bat->capload_count <= 0) return 0;
+  line=bat->capload_size - bat->capload_count;
+  if (line >= 0) {
+    memcpy(bat->capload_buf+line*20,&rec,20);
+  }
+  bat->capload_count--;
+  if (bat->capload_count > 0) return 0;
+  tmp_tab=bat->cap;
+  bat->cap=bat->capload_buf;
+  bat->capsize=bat->capload_size;
+  bat->capload_buf=0;
+  bat->capload_size=0;
+  bat->capload_count=0;
+  if (tmp_tab != battery_capacity_table) kfree(tmp_tab);
+  pr_info("capacity table loaded\n");
+  if (bat->debug_mode == 0) return 0;
+  // вывод готовой таблицы
+  line=0;
+  for(i=0;i<bat->capsize;i++) 
+    line+=snprintf(buf+line,512-line,"%d%%:%d,%d,%d,%d\n",
+		   bat->cap[i].percent,
+		   bat->cap[i].vmin,
+		   bat->cap[i].vmax,
+		   bat->cap[i].offset,
+		   bat->cap[i].hysteresis);
+  pr_info("CAPACITY_TABLES[%d]:\n %s\n",bat->capsize,buf);
+  return 0;
+}
+pr_err("NO MATCH:params=%s\n",params);
+return -EINVAL;
 }  
 
 //*****************************************************
@@ -968,7 +1040,7 @@ switch(off) {
   case 20:
     // debug_mode
     bat->debug_mode=res;
-    pr_info("Battery debug_mode changed to %ld",res);
+    pr_info("Battery debug_mode changed to %ld\n",res);
     break;
 }    
 return count;
@@ -1214,9 +1286,9 @@ bat->x568=0;
 bat->x484=3264;
 bat->x572=0;
 bat->x576=0;
-bat->x580=0;
-bat->x584=0;
-bat->x588=0;
+bat->capload_buf=0;
+bat->capload_size=0;
+bat->capload_count=0;
 bat->low_volt=3600;
 bat->temp_error_margin=2;
 bat->high_voltage=4450;
@@ -1320,8 +1392,4 @@ wakeup_source_drop(&bat->ws);
 mutex_destroy(&bat->lock);
 kfree(bat);
 }
-
-
-
-		      
 		      

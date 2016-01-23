@@ -116,9 +116,9 @@ struct battery_core_interface {
    int x568;
    int x572;
    int x576;
-   int x580;
-   int x584;
-   int x588;
+   void* capload_buf;
+   int capload_size;
+   int capload_count;
 };   
 
 
