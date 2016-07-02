@@ -166,7 +166,7 @@ static struct device_attribute battery_dev_attrs[21]={
  {{"poweroff_voltage", 0},           battery_show_property, battery_store_property},
  {{"low_voltage", 0},                battery_show_property, battery_store_property},
  {{"recharge_voltage", 0},           battery_show_property, battery_store_property},
- {{"charge_done_votage", 0},         battery_show_property, battery_store_property},
+ {{"charge_done_voltage", 0},        battery_show_property, battery_store_property},
  {{"temp_low_poweroff", 0},          battery_show_property, battery_store_property},
  {{"temp_low_disable_charge", 0},    battery_show_property, battery_store_property},
  {{"temp_high_disable_charge", 0},   battery_show_property, battery_store_property},
@@ -1062,7 +1062,7 @@ switch(off) {
     break;
     
   case 6: 
-    // charge_done_votage       
+    // charge_done_voltage       
     bat->charge_done_volt=res;
     break;
     
@@ -1208,7 +1208,7 @@ switch(off) {
     break;
     
   case 6: 
-    // charge_done_votage       
+    // charge_done_voltage       
     res=bat->charge_done_volt;
     break;
     
