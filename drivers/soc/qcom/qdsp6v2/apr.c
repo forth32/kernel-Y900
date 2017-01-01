@@ -180,11 +180,13 @@ enum apr_subsys_state apr_get_modem_state(void)
 {
 	return atomic_read(&q6.modem_state);
 }
+EXPORT_SYMBOL_GPL(apr_get_modem_state);
 
 void apr_set_modem_state(enum apr_subsys_state state)
 {
 	atomic_set(&q6.modem_state, state);
 }
+EXPORT_SYMBOL_GPL(apr_set_modem_state);
 
 enum apr_subsys_state apr_cmpxchg_modem_state(enum apr_subsys_state prev,
 					      enum apr_subsys_state new)

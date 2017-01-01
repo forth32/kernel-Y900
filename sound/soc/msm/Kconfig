@@ -272,7 +272,6 @@ config SND_SOC_MDM9630
 	depends on ARCH_MDM9630
 	select SND_SOC_QDSP6V2
 	select SND_SOC_MSM_STUB
-	select SND_SOC_WCD9320
 	select SND_SOC_MSM_HOSTLESS_PCM
 	select SND_DYNAMIC_MINORS
 	help

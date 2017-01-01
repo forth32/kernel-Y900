@@ -11,6 +11,7 @@
  */
 
 #include <linux/kernel.h>
+#include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/device.h>
 #include <linux/delay.h>
@@ -723,3 +724,4 @@ void gaudio_cleanup(void)
 	}
 }
 
+#include "f_uac1.c"

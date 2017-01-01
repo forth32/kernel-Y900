@@ -55,7 +55,7 @@
 			linux,reserve-contiguous-region;
 			linux,reserve-region;
 			linux,remove-completely;
-			reg = <0x0 0x6c00000 0x0 0x9000000>;
+			reg = <0x0 0x7000000 0x0 0x9000000>;
 			label = "memory_hole";
 		};
 	};

@@ -19,9 +19,100 @@
 #include <linux/kernel.h>
 #include <linux/device.h>
 #include <linux/atomic.h>
+#include <linux/usb/android.h>
+#include <linux/usb/composite.h>
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/fs.h>
+#include <linux/delay.h>
+#include <linux/kernel.h>
+#include <linux/utsname.h>
+#include <linux/platform_device.h>
+#include <linux/pm_qos.h>
+#include <linux/of.h>
+
+#include <linux/usb/ch9.h>
+#include <linux/usb/gadget.h>
+
+#include <linux/qcom/diag_dload.h>
+
+#include "gadget_chips.h"
 
 #include <sound/core.h>
 #include <sound/initval.h>
+
+struct android_usb_function {
+	char *name;
+	void *config;
+
+	struct device *dev;
+	char *dev_name;
+	struct device_attribute **attributes;
+
+	struct android_dev *android_dev;
+
+	/* Optional: initialization during gadget bind */
+	int (*init)(struct android_usb_function *, struct usb_composite_dev *);
+	/* Optional: cleanup during gadget unbind */
+	void (*cleanup)(struct android_usb_function *);
+	/* Optional: called when the function is added the list of
+	 *		enabled functions */
+	void (*enable)(struct android_usb_function *);
+	/* Optional: called when it is removed */
+	void (*disable)(struct android_usb_function *);
+
+	int (*bind_config)(struct android_usb_function *,
+			   struct usb_configuration *);
+
+	/* Optional: called when the configuration is removed */
+	void (*unbind_config)(struct android_usb_function *,
+			      struct usb_configuration *);
+	/* Optional: handle ctrl requests before the device is configured */
+	int (*ctrlrequest)(struct android_usb_function *,
+					struct usb_composite_dev *,
+					const struct usb_ctrlrequest *);
+};
+
+struct android_dev {
+	const char *name;
+	struct android_usb_function **functions;
+	struct usb_composite_dev *cdev;
+	struct device *dev;
+
+	void (*setup_complete)(struct usb_ep *ep,
+				struct usb_request *req);
+
+	bool enabled;
+	int disable_depth;
+	struct mutex mutex;
+	struct android_usb_platform_data *pdata;
+
+	bool connected;
+	bool sw_connected;
+	bool suspended;
+	bool sw_suspended;
+	char pm_qos[5];
+	struct pm_qos_request pm_qos_req_dma;
+	struct work_struct work;
+	char ffs_aliases[256];
+
+	/* A list of struct android_configuration */
+	struct list_head configs;
+	int configs_num;
+
+	/* A list node inside the android_dev_list */
+	struct list_head list_item;
+};
+
+struct android_configuration {
+	struct usb_configuration usb_config;
+
+	/* A list of the functions supported by this config */
+	struct list_head enabled_functions;
+
+	/* A list node inside the struct android_dev.configs list */
+	struct list_head list_item;
+};
 
 #include "u_uac1.h"
 
@@ -1373,3 +1464,15 @@ setup_fail:
 	kfree(audio);
 	return status;
 }
+
+static int audio_function_bind_config(struct android_usb_function *f,
+					  struct usb_configuration *c)
+{
+	return audio_bind_config(c);
+}
+
+static struct android_usb_function audio_function = {
+	.name		= "audio",
+	.bind_config	= audio_function_bind_config,
+};
+EXPORT_SYMBOL(audio_function);

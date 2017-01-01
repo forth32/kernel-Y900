@@ -25,7 +25,7 @@
 #include <sound/jack.h>
 #include <sound/q6afe-v2.h>
 #include <soc/qcom/socinfo.h>
-#include <qdsp6v2/msm-pcm-routing-v2.h>
+#include "qdsp6v2/msm-pcm-routing-v2.h"
 #include "../codecs/wcd9320.h"
 
 /* Spk control */
@@ -104,13 +104,14 @@ static int mdm9630_mi2s_rx_ch = 1;
 static int mdm9630_mi2s_tx_ch = 1;
 static int msm_spk_control;
 static atomic_t aux_ref_count;
-static atomic_t mi2s_ref_count;
+//static atomic_t mi2s_ref_count;
 
 static int mdm9630_enable_codec_ext_clk(struct snd_soc_codec *codec,
 					int enable, bool dapm);
 
-static void *def_taiko_mbhc_cal(void);
+//static void *def_taiko_mbhc_cal(void);
 
+/*
 static struct wcd9xxx_mbhc_config mbhc_cfg = {
 	.read_fw_bin = false,
 	.calibration = NULL,
@@ -127,6 +128,7 @@ static struct wcd9xxx_mbhc_config mbhc_cfg = {
 
 #define WCD9XXX_MBHC_DEF_BUTTONS 8
 #define WCD9XXX_MBHC_DEF_RLOADS 5
+*/
 
 static int mdm9630_set_gpio(struct snd_pcm_substream *substream,
 			    u32 intf)
@@ -221,7 +223,7 @@ err:
 	return rtn;
 
 }
-
+/*
 static int mdm9630_mi2s_clk_ctl(struct snd_soc_pcm_runtime *rtd, bool enable)
 {
 	struct snd_soc_card *card = rtd->card;
@@ -271,7 +273,8 @@ static int mdm9630_mi2s_clk_ctl(struct snd_soc_pcm_runtime *rtd, bool enable)
 	kfree(lpass_clk);
 	return ret;
 }
-
+*/
+/*
 static void mdm9630_mi2s_snd_shutdown(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
@@ -284,7 +287,8 @@ static void mdm9630_mi2s_snd_shutdown(struct snd_pcm_substream *substream)
 			pr_err("%s:clock disable failed\n", __func__);
 	}
 }
-
+*/
+/*
 static int mdm9630_mi2s_startup(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
@@ -308,11 +312,12 @@ static int mdm9630_mi2s_startup(struct snd_pcm_substream *substream)
 		if (ret < 0) {
 			pr_err("set format for codec dai failed\n");
 			return ret;
-		}
+		} */
 		/* This sets the CONFIG PARAMETER WS_SRC.
 		 * 1 means internal clock master mode.
 		 * 0 means external clock slave mode.
 		 */
+/*		 
 		ret = snd_soc_dai_set_fmt(cpu_dai, SND_SOC_DAIFMT_CBS_CFS);
 		if (ret < 0) {
 			pr_err("set fmt cpu dai failed\n");
@@ -325,7 +330,8 @@ static int mdm9630_mi2s_startup(struct snd_pcm_substream *substream)
 
 	return ret;
 }
-
+*/
+/*
 static int mdm9630_mi2s_rx_be_hw_params_fixup(struct snd_soc_pcm_runtime *rt,
 					     struct snd_pcm_hw_params *params)
 {
@@ -349,6 +355,7 @@ static int mdm9630_mi2s_tx_be_hw_params_fixup(struct snd_soc_pcm_runtime *rt,
 	channels->min = channels->max = mdm9630_mi2s_tx_ch;
 	return 0;
 }
+*/
 
 static int mdm9630_be_hw_params_fixup(struct snd_soc_pcm_runtime *rt,
 				      struct snd_pcm_hw_params *params)
@@ -617,6 +624,7 @@ static const struct snd_kcontrol_new mdm_snd_controls[] = {
 				 mdm9630_auxpcm_rate_put),
 };
 
+/*
 static int mdm9630_mi2s_audrx_init(struct snd_soc_pcm_runtime *rtd)
 {
 	int err;
@@ -633,10 +641,11 @@ static int mdm9630_mi2s_audrx_init(struct snd_soc_pcm_runtime *rtd)
 
 	snd_soc_dapm_new_controls(dapm, mdm9630_dapm_widgets,
 				  ARRAY_SIZE(mdm9630_dapm_widgets));
-
+*/
 	/* After DAPM Enable pins always
 	 * DAPM SYNC needs to be called.
 	 */
+/*	 
 	snd_soc_dapm_enable_pin(dapm, "Ext Spk Bottom Pos");
 	snd_soc_dapm_enable_pin(dapm, "Ext Spk Bottom Neg");
 	snd_soc_dapm_enable_pin(dapm, "Ext Spk Top Pos");
@@ -686,8 +695,9 @@ static int mdm9630_mi2s_audrx_init(struct snd_soc_pcm_runtime *rtd)
 	else
 		err = -ENOMEM;
 	return err;
-}
-
+} 
+*/
+/*
 void *def_taiko_mbhc_cal(void)
 {
 	void *taiko_cal;
@@ -765,13 +775,13 @@ void *def_taiko_mbhc_cal(void)
 
 	return taiko_cal;
 }
-
-
+*/
+/*
 static struct snd_soc_ops mdm9630_mi2s_be_ops = {
 	.startup = mdm9630_mi2s_startup,
 	.shutdown = mdm9630_mi2s_snd_shutdown,
 };
-
+*/
 static struct snd_soc_ops mdm9630_auxpcm_be_ops = {
 	.startup = mdm9630_auxpcm_startup,
 	.shutdown = mdm9630_auxpcm_snd_shutdown,
@@ -968,7 +978,7 @@ static struct snd_soc_dai_link mdm9630_dai[] = {
 		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA6,
 	},
 	/* Backend DAI Links */
-	{
+/*	{
 		.name = LPASS_BE_PRI_MI2S_RX,
 		.stream_name = "Primary MI2S Playback",
 		.cpu_dai_name = "msm-dai-q6-mi2s.0",
@@ -996,7 +1006,7 @@ static struct snd_soc_dai_link mdm9630_dai[] = {
 		.ops = &mdm9630_mi2s_be_ops,
 		.ignore_pmdown_time = 1,
 		.ignore_suspend = 1,
-	},
+	}, */
 	{
 		.name = LPASS_BE_AFE_PCM_RX,
 		.stream_name = "AFE Playback",

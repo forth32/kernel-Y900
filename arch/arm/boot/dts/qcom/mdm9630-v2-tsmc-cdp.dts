@@ -24,11 +24,18 @@
 		device_type = "memory";
 		reg = <0x0 0x0>;
 
+		audio_mem:audio_region@0 {
+			linux,reserve-contiguous-region;
+			linux,reserve-region;
+			reg = <0x0 0xaf000>;
+			label = "audio_mem";
+		};
+
 		peripheral_region@0x100000 {
 			linux,reserve-contiguous-region;
 			linux,reserve-region;
 			linux,remove-completely;
-			reg = <0x1000000 0x5600000>;
+			reg = <0x1000000 0x6000000>;
 			label = "peripheral_mem";
 		};
 
@@ -1651,6 +1658,13 @@
 			qcom,ion-heap@25 {
 				reg = <0x19>;
 				qcom,ion-heap-type = "SYSTEM";
+			};
+
+			qcom,ion-heap@28 {
+				compatible = "qcom,msm-ion-reserve";
+				reg = <0x1c>;
+				linux,contiguous-region = <&audio_mem>;
+				qcom,ion-heap-type = "DMA";
 			};
 		};
 
