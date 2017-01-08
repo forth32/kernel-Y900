@@ -753,7 +753,9 @@ static inline u32 msm_pc_debug_counters_read_register(
 static char *counter_name[] = {
 		"PC Entry Counter",
 		"Warmboot Entry Counter",
-		"PC Bailout Counter"
+		"PC Bailout Counter",
+		"",
+		""
 };
 
 static int msm_pc_debug_counters_copy(
